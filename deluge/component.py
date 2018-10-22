@@ -64,11 +64,20 @@ class Component:
                    paused by instructing the :class:`ComponentRegistry` to pause
                    this Component.
 
+<<<<<<< HEAD
         **pause()** - This method is called when the component is being paused.
 
         **resume()** - This method is called when the component resumes from a Paused
                     state.
 
+||||||| parent of 8c1887cb7 ([Core] Call wait_for_alert in a thread)
+=======
+       **pause()** - This method is called when the component is being paused.
+
+       **resume()** - This method is called when the component resumes from a Paused
+                    state.
+
+>>>>>>> 8c1887cb7 ([Core] Call wait_for_alert in a thread)
         **shutdown()** - This method is called when the client is exiting.  If the
                      Component is in a "Started" state when this is called, a
                      call to stop() will be issued prior to shutdown().
