@@ -25,7 +25,6 @@ jobs:
       - name: Cache pip
         uses: actions/cache@v2
         with:
-          # This path is specific to Ubuntu
           path: ~/.cache/pip
           # Look to see if there is a cache hit for the corresponding requirements file
           key: ${{ runner.os }}-pip-${{ hashFiles('tox.ini', 'setup.py', 'requirements*.txt') }}
@@ -50,10 +49,8 @@ jobs:
 
       - name: Test with pytest
         run: |
-          python -VV
-          export PYTHONPATH="$PYTHONPATH:/usr/lib/python3/dist-packages"
           cp /usr/lib/python3/dist-packages/libtorrent*.so $GITHUB_WORKSPACE/deluge
-          python -c 'import libtorrent as lt; print(lt.__version__)';
+          python -c 'from deluge._libtorrent import lt; print(lt.__version__)';
           pytest -m "not (todo or gtkui or security)" deluge
 
   test-windows:
@@ -70,15 +67,24 @@ jobs:
         with:
           python-version: "3.6"
 
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: '%LOCALAPPDATA%\pip\Cache'
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-pip-${{ hashFiles('tox.ini', 'setup.py', 'requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
       - name: Install dependencies
         run: |
-          python -VV
           python -m pip install --upgrade pip wheel certifi
           python -m pip install deluge-libtorrent
           pip install -r requirements.txt -r requirements-tests.txt
-          pip install .
+          pip install -e .
 
       - name: Test with pytest
         run: |
           python -c 'import libtorrent as lt; print(lt.__version__)';
-          pytest -m "not (todo or gtkui or security)" deluge/tests
+          pytest -m "not (todo or gtkui or security)" deluge
