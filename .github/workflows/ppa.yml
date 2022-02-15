@@ -1,4 +1,4 @@
-name: CI
+name: PPA
 
 on:
   push:
@@ -29,17 +29,18 @@ jobs:
           key-server: keyserver.ubuntu.com
           install: python3-libtorrent-dbg
 
-      - name: Add libtorrent deb repository
+      - name: Add deluge deb repository
         uses: myci-actions/add-deb-repo@8
         with:
           repo: deb https://ppa.launchpadcontent.net/deluge-team/develop/ubuntu focal main
           repo-name: deluge-team
           keys: 8EED8FB4A8E6DA6DFDF0192BC5E6A5ED249AD24C
           key-server: keyserver.ubuntu.com
-          install: deluge
+          install: deluge deluged
 
       - name: Test Deluge
         timeout-minutes: 1
         run: |
+          deluge -v
           deluged --version
           deluged
