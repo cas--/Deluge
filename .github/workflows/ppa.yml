@@ -40,4 +40,6 @@ jobs:
 
       - name: Test Deluge
         timeout-minutes: 1
-        run: deluged
+        run: |
+          deluged --version
+          deluged
