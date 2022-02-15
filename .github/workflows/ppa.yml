@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-20.04
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: Add libtorrent deb repository
+        uses: myci-actions/add-deb-repo@8
+        with:
+          repo: deb http://ppa.launchpad.net/libtorrent.org/1.2-daily/ubuntu focal main
+          repo-name: libtorrent
+          keys: 58E5430D9667FAEFFCA0B93F32309D6B9E009EDB
+          key-server: keyserver.ubuntu.com
+          install: python3-libtorrent-dbg
+
+      - name: Add libtorrent deb repository
+        uses: myci-actions/add-deb-repo@8
+        with:
+          repo: deb https://ppa.launchpadcontent.net/deluge-team/develop/ubuntu focal main
+          repo-name: deluge-team
+          keys: 8EED8FB4A8E6DA6DFDF0192BC5E6A5ED249AD24C
+          key-server: keyserver.ubuntu.com
+          install: deluge
+
+      - name: Test Deluge
+        timeout-minutes: 1
+        run: deluged
