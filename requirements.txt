@@ -6,9 +6,8 @@ pyxdg
 pillow
 mako
 setuptools
-chardet==4.0.0
+chardet
 virtualenv==20.14.1
-nodeenv==1.6.0
 setproctitle
 pywin32; sys_platform == 'win32'
 certifi; sys_platform == 'win32'
