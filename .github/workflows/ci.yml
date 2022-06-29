@@ -9,6 +9,7 @@ on:
 
 jobs:
   test-linux:
+    if: ${{ false }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -68,7 +69,7 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        python-version: ["3.7", "3.10"]
+        python-version: ["3.10"]
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
