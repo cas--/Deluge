@@ -18,7 +18,6 @@ import contextlib
 import logging
 import threading
 from collections import defaultdict
-from types import SimpleNamespace
 from typing import Any, Callable
 
 from twisted.internet import reactor, threads
@@ -89,9 +88,30 @@ class AlertManager(component.Component):
             if self._event.wait():
                 threads.blockingCallFromThread(reactor, self.maybe_handle_alerts)
 
-    def maybe_handle_alerts(self):
-        if self._component_state == 'Started':
-            self.handle_alerts()
+    def check_delayed_calls(self, retries: int = 0) -> bool:
+        self.delayed_calls = [dc for dc in self.delayed_calls if dc.active()]
+        if not self.delayed_calls:
+            return False
+
+        if retries > 5:
+            log.error(
+                'Timeout reached waiting for alert handlers %s', self.delayed_calls
+            )
+            return False
+
+        return True
+
+    def maybe_handle_alerts(self, retries: int = 0) -> None:
+        if self._component_state != 'Started':
+            return
+
+        if self.check_delayed_calls(retries):
+            log.warning('Waiting for delayed alerts. %s', self.delayed_calls)
+            retries += 1
+            reactor.callLater(0.5, self.maybe_handle_alerts, retries)
+            return
+
+        self.handle_alerts()
 
     def register_handler(self, alert_type: str, handler: Callable[[Any], None]) -> None:
         """
@@ -153,21 +173,7 @@ class AlertManager(component.Component):
                 if log.isEnabledFor(logging.DEBUG):
                     log.debug('Handling alert: %s', alert_type)
 
-                alert_copy = self.create_alert_copy(alert)
-                self.delayed_calls.append(reactor.callLater(0, handler, alert_copy))
-
-    @staticmethod
-    def create_alert_copy(alert):
-        """Create a Python copy of libtorrent alert
-
-        Avoid segfault if an alert is handled after next pop_alert call"""
-        return SimpleNamespace(
-            **{
-                attr: getattr(alert, attr)
-                for attr in dir(alert)
-                if not attr.startswith('__')
-            }
-        )
+                self.delayed_calls.append(reactor.callLater(0, handler, alert))
 
     def set_alert_queue_size(self, queue_size):
         """Sets the maximum size of the libtorrent alert queue"""
