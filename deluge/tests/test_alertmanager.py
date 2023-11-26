@@ -3,8 +3,6 @@
 # the additional special exception to link portions of this program with the OpenSSL library.
 # See LICENSE for more details.
 #
-from types import SimpleNamespace
-
 import pytest_twisted
 
 import deluge.component as component
@@ -13,21 +11,28 @@ from deluge.core.core import Core
 
 
 class DummyAlert1:
-    def __init__(self):
-        self.message = '1'
+    def message(self):
+        return '1'
+
+    def what(self):
+        return 'DummyAlert1'
 
 
 class DummyAlert2:
-    def __init__(self):
-        self.message = '2'
+    def message(self):
+        return '2'
+
+    def what(self):
+        return 'DummyAlert1'
 
 
-class SessionMock:
+class LtSessionMock:
     def __init__(self):
         self.alerts = []
 
     def set_alerts(self):
         self.alerts = [DummyAlert1(), DummyAlert2()]
+        return self.alerts
 
     def wait_for_alert(self, timeout):
         return self.alerts[0] if len(self.alerts) > 0 else None
@@ -43,7 +48,7 @@ class TestAlertManager(BaseTestCase):
         self.core = Core()
         self.core.config.config['lsd'] = False
         self.am = component.get('AlertManager')
-        self.am.session = SessionMock()
+        self.am.session = LtSessionMock()
         return component.start(['AlertManager'])
 
     def tear_down(self):
@@ -60,11 +65,14 @@ class TestAlertManager(BaseTestCase):
 
     @pytest_twisted.ensureDeferred
     async def test_pop_alert(self, mock_callback):
-        mock_callback.reset_mock()
         self.am.register_handler('DummyAlert1', mock_callback)
-        self.am.session.set_alerts()
+
+        alerts = self.am.session.set_alerts()
+        alert_1 = alerts[0]
+
         await mock_callback.deferred
-        mock_callback.assert_called_once_with(SimpleNamespace(message='1'))
+
+        mock_callback.assert_called_once_with(alert_1)
 
     @pytest_twisted.ensureDeferred
     async def test_pause_not_pop_alert(self, mock_callback):
