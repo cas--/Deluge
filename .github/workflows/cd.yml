@@ -24,9 +24,9 @@ jobs:
     if: (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'package'))
     strategy:
       matrix:
-        arch: [x64, x86]
-        python: ["3.9"]
-        libtorrent: [2.0.7, 1.2.19]
+        arch: [x64]
+        python: ["3.10"]
+        libtorrent: [2.0.11]
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -51,11 +51,10 @@ jobs:
 
       - name: Prepare pip
         run: python -m pip install wheel setuptools==68.*
-
       - name: Install GTK
         run: |
           $WebClient = New-Object System.Net.WebClient
-          $WebClient.DownloadFile("https://github.com/deluge-torrent/gvsbuild-release/releases/download/latest/gvsbuild-py${{ matrix.python }}-vs16-${{ matrix.arch }}.zip","C:\GTK.zip")
+          $WebClient.DownloadFile("https://github.com/deluge-torrent/gvsbuild-release/releases/download/gvsbuild-2026.1.0-afc4141a/gvsbuild-py${{ matrix.python }}-vs17-${{ matrix.arch }}.zip","C:\GTK.zip")
           7z x C:\GTK.zip -oc:\GTK
           echo "C:\GTK\release\lib" | Out-File -FilePath $env:GITHUB_PATH -Append
           echo "C:\GTK\release\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
@@ -68,11 +67,24 @@ jobs:
         run: >
           python -m pip install
           --only-binary=pillow
-          twisted[tls]==22.8.0
+          twisted[tls]==25.5.0
           libtorrent==${{ matrix.libtorrent }}
           pyinstaller
           pygame
           -r requirements.txt
+
+      - name: Patch Twisted
+        shell: bash
+        run: |
+          # Find the Twisted installation location (site-packages directory)
+          SITE_PACKAGES=$(python -c "import twisted.internet; import os; print(os.path.dirname(os.path.dirname(os.path.dirname(twisted.internet.__file__))))")
+          echo "Site packages at: $SITE_PACKAGES"
+
+          # Apply the patch
+          cd "$SITE_PACKAGES"
+          patch -p1 < "$GITHUB_WORKSPACE/.github/patches/twisted-glib-windows.patch"
+
+          echo "Patch applied successfully"
 
       - name: Install Deluge
         working-directory: deluge_src
@@ -86,6 +98,7 @@ jobs:
           pyinstaller --clean delugewin.spec --distpath freeze
 
       - name: Verify Deluge exes
+        shell: bash
         working-directory: packaging/win/freeze/Deluge/
         run: |
           deluge-debug.exe -v
