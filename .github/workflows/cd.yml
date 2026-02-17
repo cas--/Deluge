@@ -72,6 +72,13 @@ jobs:
           pygame
           -r requirements.txt
 
+      - name: Install OpenSSL 1.1.1
+        run: |
+          choco install openssl.light --version=1.1.1.20181020
+
+      - name: Verify libtorrent
+        run: python -c 'import libtorrent as lt; print(lt.__version__)'
+
       - name: Patch Twisted
         shell: bash
         run: |

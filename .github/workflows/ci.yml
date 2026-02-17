@@ -105,6 +105,10 @@ jobs:
           uv pip install -r requirements-ci.txt
           uv pip install -e .
 
+      - name: Install OpenSSL
+        run: |
+          choco install openssl.light --version=1.1.1.20181020
+
       - name: Patch Twisted
         shell: bash
         run: |
