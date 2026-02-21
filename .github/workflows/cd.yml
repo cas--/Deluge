@@ -103,22 +103,39 @@ jobs:
         run: |
           pyinstaller --clean delugewin.spec --distpath freeze
 
-      - name: Verify Deluge exes
-        shell: bash
-        working-directory: packaging/win/freeze/Deluge/
-        run: |
-          deluge-debug.exe -v
-          deluged-debug.exe -v
-          deluge-web-debug.exe -v
-          deluge-console -v
-
       - name: Make Deluge Installer
         working-directory: ./packaging/win
         run: |
           python setup_nsis.py
           makensis /Darch=${{ matrix.arch }} deluge-win-installer.nsi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: deluge-py${{ matrix.python }}-lt${{ matrix.libtorrent }}-${{ matrix.arch }}
           path: packaging/win/*.exe
+
+  windows_verify:
+    needs: windows_package
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        arch: [x64]
+        python: ["3.10"]
+        libtorrent: [2.0.11]
+    steps:
+      - name: Download installer
+        uses: actions/download-artifact@v7
+        with:
+          name: deluge-py${{ matrix.python }}-lt${{ matrix.libtorrent }}-${{ matrix.arch }}
+
+      - name: Install Deluge
+        run: Start-Process -Wait -FilePath (Get-Item *.exe).FullName -ArgumentList '/S'
+
+      - name: Verify installed exes
+        shell: bash
+        run: |
+          for exe in deluge-debug.exe deluged-debug.exe deluge-web-debug.exe deluge-console; do
+            echo "Verifying $exe"
+            "$PROGRAMFILES/Deluge/$exe" --version
+            "$PROGRAMFILES/Deluge/$exe" --help
+          done
