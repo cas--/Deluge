@@ -29,11 +29,8 @@ DEFAULT_PREFS = {'default_ui': 'gtk'}
 AMBIGUOUS_CMD_ARGS = ('-h', '--help', '-v', '-V', '--version')
 
 
-def start_ui():
-    """Entry point for ui script"""
-    setup_translation()
-
-    # Get the registered UI entry points
+def get_ui_entrypoints():
+    """Return a dict of loaded deluge.ui entry points, keyed by name."""
     ui_entrypoints = {}
     for entrypoint in pkg_resources.iter_entry_points('deluge.ui'):
         try:
@@ -41,6 +38,14 @@ def start_ui():
         except ImportError:
             # Unable to load entrypoint so skip adding it.
             pass
+    return ui_entrypoints
+
+
+def start_ui():
+    """Entry point for ui script"""
+    setup_translation()
+
+    ui_entrypoints = get_ui_entrypoints()
 
     ui_titles = sorted(ui_entrypoints)
 
