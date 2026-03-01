@@ -49,7 +49,22 @@ git repository to have an idea of what needs to be changed.
 class PluginManagerBase:
     """PluginManagerBase is a base class for PluginManagers to inherit"""
 
-    def __init__(self, config_file, entry_name):
+    def __init__(
+        self,
+        config_file: str,
+        entry_name: str,
+        plugin_dirs: list[str | os.PathLike] | None = None,
+    ) -> None:
+        """Initialise the plugin manager.
+
+        Args:
+            config_file: Name of the config file (e.g. 'core.conf').
+            entry_name: The setuptools entry-point group to load plugins from
+                (e.g. 'deluge.plugin.core').
+            plugin_dirs: Directories to scan for plugins. Defaults to None,
+                which uses the standard base and user plugin directories.
+                Primarily intended for testing.
+        """
         log.debug('Plugin manager init..')
 
         self.config = deluge.configmanager.ConfigManager(config_file)
@@ -65,6 +80,9 @@ class PluginManagerBase:
 
         # Loaded plugins
         self.plugins = {}
+
+        # Directories scanned for plugins
+        self.plugin_dirs = plugin_dirs if plugin_dirs else self.default_plugin_dirs()
 
         # Scan the plugin folders for plugins
         self.scan_for_plugins()
@@ -91,8 +109,9 @@ class PluginManagerBase:
         """Returns a list of enabled plugins"""
         return list(self.plugins)
 
-    def scan_for_plugins(self):
-        """Scans for available plugins"""
+    @staticmethod
+    def default_plugin_dirs() -> list[str]:
+        """Returns the default directories to scan for plugins."""
         base_dir = deluge.common.resource_filename('deluge', 'plugins')
         user_dir = os.path.join(deluge.configmanager.get_config_dir(), 'plugins')
         base_subdir = [
@@ -101,12 +120,14 @@ class PluginManagerBase:
             if os.path.isdir(os.path.join(base_dir, f))
         ]
         plugin_dirs = [base_dir, user_dir] + base_subdir
+        return plugin_dirs
 
-        for dirname in plugin_dirs:
+    def scan_for_plugins(self) -> None:
+        """Scan plugin_dirs for available plugins."""
+        str_dirs = [str(d) for d in self.plugin_dirs]
+        for dirname in str_dirs:
             pkg_resources.working_set.add_entry(dirname)
-        self.pkg_env = pkg_resources.Environment(
-            plugin_dirs, platform=None, python=None
-        )
+        self.pkg_env = pkg_resources.Environment(str_dirs, platform=None, python=None)
 
         self.available_plugins = []
         for name in self.pkg_env:
