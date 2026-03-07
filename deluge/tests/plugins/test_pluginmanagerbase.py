@@ -1,4 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later WITH GPL-3.0-linking-exception
+import sys
+
+import pytest
+
 from deluge.pluginmanagerbase import PluginManagerBase
 
 
@@ -99,6 +103,10 @@ def test_scan_egg_link(tmp_path):
     assert pm.get_plugin_info('MyPlugin')['Version'] == '0.1'
 
 
+@pytest.mark.skipif(
+    sys.platform == 'win32',
+    reason='pkg_resources normalizes project_name to lowercase on Windows for directory eggs',
+)
 def test_scan_unpacked_egg_dir(tmp_path):
     """An unpacked .egg directory (Ubuntu-style) with EGG-INFO/ must be discovered."""
     plugins_dir = tmp_path / 'plugins'
