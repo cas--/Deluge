@@ -68,7 +68,7 @@ jobs:
       - name: Test with pytest
         run: |
           python -c 'from deluge._libtorrent import lt; print(lt.__version__)';
-          $DEBUG_PREFIX pytest -v -m "not (todo or gtkui)" deluge
+          $DEBUG_PREFIX pytest -v -m "not (todo or gtkui or internet)" deluge
 
       - uses: actions/upload-artifact@v4
         # capture all crashes as build artifacts
@@ -124,4 +124,4 @@ jobs:
       - name: Test with pytest
         run: |
           python -c 'import libtorrent as lt; print(lt.__version__)';
-          pytest -v -m "not (todo or gtkui or security)" deluge
+          pytest -v -m "not (todo or gtkui or security or internet)" deluge
