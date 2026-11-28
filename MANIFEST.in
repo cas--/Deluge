@@ -5,4 +5,3 @@ recursive-exclude deluge/ui/web/themes *.psd
 prune packaging
 graft packaging/systemd
 exclude uv.lock
-recursive-exclude deluge/plugins create_dev_link.sh
