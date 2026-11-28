@@ -127,6 +127,10 @@ extend-function-names = ["_n"]
 "deluge/plugins/Stats/deluge_stats/graph.py" = ["E402"]
 "deluge/ui/gtk3/*.py" = ["E402"]
 
+[tool.setuptools]
+# Only ship the package_data from setup.py, not every tracked file.
+include-package-data = false
+
 [tool.pyright]
 reportMissingImports = "information"
 reportMissingModuleSource = "information"
