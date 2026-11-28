@@ -56,7 +56,6 @@ tests = [
     "pre-commit",
     "pylint",
     "cryptography",
-    "setuptools < 82",
 ]
 dev = [
     { include-group = "tests" },
