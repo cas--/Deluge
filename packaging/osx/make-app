@@ -3,7 +3,7 @@
 APPDIR="./app/Deluge.app"
 RSCDIR="${APPDIR}/Contents/Resources"
 LIBDIR="${RSCDIR}/lib"
-VERSION=$(cat ../../RELEASE-VERSION)
+VERSION=$(cd ../.. && python -m setuptools_scm)
 YEAR=$(date +'%Y')
 
 function msg() { echo "==> $1"; }

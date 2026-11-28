@@ -18,7 +18,6 @@ deluge/ui/web/js/extjs/ext-extensions*.js
 *.metainfo.xml
 .build_data*
 osx/app
-RELEASE-VERSION
 .venv*
 # used by setuptools to cache downloaded eggs
 /.eggs

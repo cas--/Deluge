@@ -1,36 +1,8 @@
-include *.md
-include AUTHORS
-include LICENSE
-include RELEASE-VERSION
-include msgfmt.py
-include minify_web_js.py
-include version.py
-include gen_web_gettext.py
-
-graft docs/man
+# setuptools-scm adds every tracked file, so drop what is not needed to build, run or test.
+prune .github
+prune deluge/ui/web/docs
+recursive-exclude deluge/ui/web/themes *.psd
+prune packaging
 graft packaging/systemd
-
-include deluge/i18n/*.po
-recursive-exclude deluge/i18n *.mo
-
-graft deluge/plugins
-recursive-exclude deluge/plugins create_dev_link.sh *.pyc *.egg
-prune deluge/plugins/*/build
-prune deluge/plugins/*/*.egg-info
-
-graft deluge/tests/
-recursive-exclude deluge/tests *.pyc
-
-graft deluge/ui/data
-recursive-exclude deluge/ui/data *.desktop *.xml
-graft deluge/ui/gtk3/glade
-
-include deluge/ui/web/index.html
-include deluge/ui/web/css/*.css
-include deluge/ui/web/js/*.js
-graft deluge/ui/web/js/deluge-all/
-graft deluge/ui/web/js/extjs/
-graft deluge/ui/web/themes
-graft deluge/ui/web/render
-graft deluge/ui/web/icons
-graft deluge/ui/web/images
+exclude uv.lock
+recursive-exclude deluge/plugins create_dev_link.sh

@@ -12,7 +12,7 @@ from subprocess import call, check_output
 
 sdist_formats = 'xztar'
 
-version = check_output(['python', 'version.py']).strip().decode()
+version = check_output(['python', '-m', 'setuptools_scm']).strip().decode()
 
 # Create release archive
 release_dir = 'dist/release-%s' % version

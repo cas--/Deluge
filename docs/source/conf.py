@@ -26,12 +26,8 @@ sys.path.append(
         )
     )
 )
-# Importing version only possible after add project root to sys.path.
-try:
-    from version import get_version
-except ImportError:
-    from deluge.common import get_version
-
+# Importing deluge only possible after add project root to sys.path.
+from deluge.common import get_version
 
 # General configuration
 # ---------------------

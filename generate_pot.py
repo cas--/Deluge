@@ -15,7 +15,7 @@ import re
 from datetime import datetime
 from subprocess import call
 
-from version import get_version
+from deluge.common import get_version
 
 # Paths to exclude
 EXCLUSIONS = ['deluge/scripts', 'deluge/i18n', 'deluge/tests']
@@ -34,7 +34,7 @@ xgettext_cmd = [
     '-o%s' % POT_FILEPATH,
     '--package-name=%s' % 'Deluge',
     '--copyright-holder=%s' % 'Deluge Team',
-    '--package-version=%s' % get_version(prefix='deluge-', suffix='.dev0'),
+    '--package-version=%s' % get_version(),
     '--msgid-bugs-address=%s' % 'http://deluge-torrent.org',
 ]
 

@@ -20,7 +20,6 @@ from shutil import rmtree, which
 from setuptools import Command, find_packages, setup
 
 import msgfmt
-from version import get_version
 
 try:
     from sphinx.setup_command import BuildDoc
@@ -46,7 +45,6 @@ _package_data = {}
 _exclude_package_data = {}
 _entry_points = {'console_scripts': [], 'gui_scripts': [], 'deluge.ui': []}
 _data_files = []
-_version = get_version(prefix='deluge-', suffix='.dev0')
 
 
 class CleanDocs(Command):
@@ -520,7 +518,6 @@ _package_data['deluge.ui.gtk3'] = ['glade/*.ui']
 # Main setup
 setup(
     name='deluge',
-    version=_version,
     fullname='Deluge BitTorrent Client',
     description='BitTorrent Client',
     author='Deluge Team',
