@@ -176,6 +176,22 @@ def test_higher_version_wins(tmp_path):
     assert pm.get_plugin_info('FakePlugin')['Version'] == '0.2'
 
 
+def test_invalid_version_keeps_existing(tmp_path):
+    """A duplicate with an unparseable version must not replace the plugin found first."""
+    plugin_dirs = []
+    for name, version in (('first', '0.1'), ('second', 'not a version')):
+        directory = tmp_path / name
+        directory.mkdir()
+        pkg_info = f'Metadata-Version: 1.0\nName: FakePlugin\nVersion: {version}\n'
+        with zipfile.ZipFile(directory / f'FakePlugin-{name}-py3.egg', 'w') as zf:
+            zf.writestr('EGG-INFO/PKG-INFO', pkg_info)
+            zf.writestr('EGG-INFO/entry_points.txt', '')
+        plugin_dirs.append(directory)
+
+    pm = PluginManagerBase('core.conf', 'deluge.plugin.core', plugin_dirs=plugin_dirs)
+    assert pm.get_plugin_info('FakePlugin')['Version'] == '0.1'
+
+
 @pytest.mark.parametrize(
     'name, expected',
     [

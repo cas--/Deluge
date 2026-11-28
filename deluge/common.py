@@ -10,7 +10,6 @@
 
 import base64
 import binascii
-import functools
 import glob
 import logging
 import numbers
@@ -31,6 +30,8 @@ from pathlib import Path
 from typing import Literal, Optional
 from urllib.parse import unquote_plus, urljoin
 from urllib.request import pathname2url
+
+from packaging.version import Version
 
 from deluge.decorators import deprecated
 from deluge.error import InvalidPathError
@@ -1140,79 +1141,8 @@ def utf8_encode_structure(data):
     return data
 
 
-@functools.total_ordering
-class VersionSplit:
-    """
-    Used for comparing version numbers.
-
-    :param ver: the version
-    :type ver: string
-
-    """
-
-    def __init__(self, ver):
-        version_re = re.compile(
-            r"""
-        ^
-        (?P<version>\d+\.\d+)          # minimum 'N.N'
-        (?P<extraversion>(?:\.\d+)*)   # any number of extra '.N' segments
-        (?:
-            (?P<prerel>[abc]|rc)       # 'a'=alpha, 'b'=beta, 'c'=release candidate
-                                       # 'rc'= alias for release candidate
-            (?P<prerelversion>\d+(?:\.\d+)*)
-        )?
-        (?P<postdev>(\.post(?P<post>\d+))?(\.dev(?P<dev>\d+))?)?
-        $""",
-            re.VERBOSE,
-        )
-
-        # Check for PEP 386 compliant version
-        match = re.search(version_re, ver)
-        if match:
-            group = [(x if x is not None else '') for x in match.group(1, 2, 3, 4, 8)]
-            vs = [''.join(group[0:2]), ''.join(group[2:4]), group[4].lstrip('.')]
-        else:
-            ver = ver.lower()
-            vs = ver.replace('_', '-').split('-')
-
-        self.version = [int(x) for x in vs[0].split('.') if x.isdigit()]
-        self.version_string = ''.join(str(x) for x in vs[0].split('.') if x.isdigit())
-        self.suffix = None
-        self.dev = None
-        if len(vs) > 1:
-            if vs[1].startswith(('rc', 'a', 'b', 'c')):
-                self.suffix = vs[1]
-            if vs[-1].startswith('dev'):
-                try:
-                    # Store only the dev numeral.
-                    self.dev = int(vs[-1].rsplit('dev')[1])
-                except ValueError:
-                    # Implicit dev numeral is 0.
-                    self.dev = 0
-
-    def get_comparable_versions(self, other):
-        """
-        Returns a 2-tuple of lists for use in the comparison
-        methods.
-        """
-        # PEP 386 versions with .devN precede release version so default
-        # non-dev versions to infinity while dev versions are ints.
-        self.dev = float('inf') if self.dev is None else self.dev
-        other.dev = float('inf') if other.dev is None else other.dev
-        # If there is no suffix we use z because we want final
-        # to appear after alpha, beta, and rc alphabetically.
-        v1 = [self.version, self.suffix or 'z', self.dev]
-        v2 = [other.version, other.suffix or 'z', other.dev]
-
-        return (v1, v2)
-
-    def __eq__(self, other):
-        v1, v2 = self.get_comparable_versions(other)
-        return v1 == v2
-
-    def __lt__(self, other):
-        v1, v2 = self.get_comparable_versions(other)
-        return v1 < v2
+# Alias kept for third-party plugins.
+VersionSplit = Version
 
 
 # Common AUTH stuff

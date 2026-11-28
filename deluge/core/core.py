@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.request import URLError, urlopen
 
+from packaging.version import InvalidVersion
 from twisted.internet import defer, reactor, task, threads
 from twisted.web.client import Agent, readBody
 
@@ -267,19 +268,20 @@ class Core(component.Component):
             The formatted peer_id with Deluge prefix e.g. '--DE200s--'
         """
         split = deluge.common.VersionSplit(version)
+        release = list(split.release)
         # Fill list with zeros to length of 4 and use lt to create fingerprint.
-        version_list = split.version + [0] * (4 - len(split.version))
+        version_list = release + [0] * (4 - len(release))
         peer_id = lt.generate_fingerprint('DE', *version_list)
 
         def substitute_chr(string, idx, char):
             """Fast substitute single char in string."""
             return string[:idx] + char + string[idx + 1 :]
 
-        if split.dev:
+        if split.is_devrelease:
             release_chr = 'D'
-        elif split.suffix:
+        elif split.pre:
             # a (alpha), b (beta) or r (release candidate).
-            release_chr = split.suffix[0].lower()
+            release_chr = split.pre[0][0]
         else:
             release_chr = 's'
         peer_id = substitute_chr(peer_id, 6, release_chr)
@@ -389,9 +391,14 @@ class Core(component.Component):
     def check_new_release(self):
         if self.new_release:
             log.debug('new_release: %s', self.new_release)
-            if deluge.common.VersionSplit(
-                self.new_release
-            ) > deluge.common.VersionSplit(deluge.common.get_version()):
+            try:
+                is_newer = deluge.common.VersionSplit(
+                    self.new_release
+                ) > deluge.common.VersionSplit(deluge.common.get_version())
+            except InvalidVersion:
+                log.debug('Invalid new release version: %s', self.new_release)
+                return False
+            if is_newer:
                 component.get('EventManager').emit(
                     NewVersionAvailableEvent(self.new_release)
                 )

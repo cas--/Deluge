@@ -150,6 +150,9 @@ class TestCommon:
         assert VersionSplit('1.4.0') > VersionSplit('1.4.0.dev123')
         assert VersionSplit('1.4.0.dev1') < VersionSplit('1.4.0')
         assert VersionSplit('1.4.0a1') < VersionSplit('1.4.0')
+        # setuptools-scm local versions
+        assert VersionSplit('1.4.0.dev1+g1234abc') < VersionSplit('1.4.0')
+        assert VersionSplit('1.4.0.dev2+gabc1234') > VersionSplit('1.4.0.dev1+g1234abc')
 
     @pytest.mark.parametrize(
         ('human_size', 'expected'),

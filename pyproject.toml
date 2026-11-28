@@ -21,6 +21,7 @@ dynamic = [
 ]
 dependencies = [
     "twisted[tls]>=17.1",
+    "packaging",
     "rencode",
     "pyopenssl",
     "cryptography",

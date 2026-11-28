@@ -21,6 +21,7 @@ from importlib.metadata import EntryPoints
 from importlib.resources import files
 from pathlib import Path
 
+from packaging.version import InvalidVersion
 from twisted.internet import defer
 from twisted.python.failure import Failure
 
@@ -357,14 +358,23 @@ class PluginManagerBase:
         key = plugin_dist.id
         existing = self._plugin_dist.get(key)
         if existing:
-            new_ver = VersionSplit(plugin_dist.version)
-            old_ver = VersionSplit(existing.version)
             # Prefer newer version, or a source directory over a plugin of equal version.
-            prefer_new = new_ver > old_ver or (
-                new_ver == old_ver
-                and existing.location.is_file()
-                and plugin_dist.location.is_dir()
-            )
+            try:
+                new_ver = VersionSplit(plugin_dist.version)
+                old_ver = VersionSplit(existing.version)
+                prefer_new = new_ver > old_ver or (
+                    new_ver == old_ver
+                    and existing.location.is_file()
+                    and plugin_dist.location.is_dir()
+                )
+            except InvalidVersion:
+                log.warning(
+                    'Cannot compare versions %s and %s of plugin %s, keeping the first',
+                    existing.version,
+                    plugin_dist.version,
+                    plugin_dist.name,
+                )
+                prefer_new = False
             if not prefer_new:
                 log.debug('Skipping duplicate plugin: %s at %s', key, plugin_path)
                 return
